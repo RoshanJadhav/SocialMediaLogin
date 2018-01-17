@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1039525262987",
+    "project_id": "facebookintegration-a658e"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1039525262987:android:672b58a0c4f50013",
+        "android_client_info": {
+          "package_name": "com.rkhs.c_andorid.facebookintegration"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1039525262987-7ofcbitfvd1k9c7e0qrobmlvh8m0uvdk.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "1039525262987-9me3n0lu2gdhs4mv4lir1oetmub7r8b6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rkhs.c_andorid.facebookintegration",
+            "certificate_hash": "8ea68d901344e598cea1ac8ad292d9996a839eb1"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTx68OcM1jtz2AeteNruOCGotVNW8wKRA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
