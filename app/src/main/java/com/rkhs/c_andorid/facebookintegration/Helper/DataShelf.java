@@ -72,12 +72,6 @@ public class DataShelf extends SQLiteOpenHelper {
         else {return false;}
     }
 
-    public Cursor selectFromLogin(String username) {
-        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
-        Cursor c = sqLiteDatabase.rawQuery("select * from "+TABLE_LOGIN+" where "+USERNAME+"= ?",new String[]{username});
-        return c;
-    }
-
     //METHODS FOR THE SECOND TABLE...
     public boolean insertIntoLoginDetails(UserDetails userDetails) {
 
