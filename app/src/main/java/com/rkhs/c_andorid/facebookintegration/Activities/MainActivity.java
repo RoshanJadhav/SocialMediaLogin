@@ -3,6 +3,8 @@ package com.rkhs.c_andorid.facebookintegration.Activities;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -61,6 +63,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LoginPresenter loginPresenter;
 
     Activity activity;
+    AccessToken accessToken = null;
+    SharedPreferences sharedPreferences;
 
     private static final int REQ_CODE = 9001;
 
@@ -72,15 +76,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         f_init();
 
-
-        //setting the permission for getting the email from the login inforamtion...
+        //setting the permission for getting the email from the login information...
         loginButton.setReadPermissions("email");
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
 
-                AccessToken accessToken = loginResult.getAccessToken();
+                accessToken = loginResult.getAccessToken();
                 String kToken = loginResult.getAccessToken().getToken();
+
+                sharedPreferences = getSharedPreferences("newPrefs",MODE_PRIVATE);
+                sharedPreferences.edit().putString("token",kToken).commit();
+
                 new PrefUtil(activity).saveAccessToken(kToken);
 
                 GraphRequest request = GraphRequest.newMeRequest(
@@ -91,7 +98,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             public void onCompleted(JSONObject jsonObject,
                                                     GraphResponse response) {
                                 // Getting FB User Data
-                                UserDetails facebookData = loginPresenter.collectDetailsFacebook(jsonObject);
+                                UserDetails userDetails = loginPresenter.collectDetailsFacebook(jsonObject);
+
+
+                                //checking if the user is already saved in database...
+                                Cursor c = dataShelf.selectFromLoginDetails(userDetails.getkEmailId());
+                                if (c.getCount() > 0) {
+                                    c.moveToFirst();
+                                    Log.i("karo","name : "+c.getString(1));
+                                }
+                                else {
+                                    boolean res = dataShelf.insertIntoLoginDetails(userDetails);
+                                    Log.i("karo",""+res);
+                                }
+
+
+//                                if (!new PrefUtil(activity).getLoginDetailsEmailPrefs(Constants.kLoginFromFacebook).equals(userDetails.getkEmailId())) {
+//                                    //if the user is loggin in for the first time then the info will be inserted in the databse table
+//                                    new PrefUtil(activity).setLoginDetailsEmailPrefs(userDetails.getkEmailId(),Constants.kLoginFromFacebook);
+//                                    loginPresenter.insertt(userDetails);
+//                                }
+//
+//                                Cursor c = dataShelf.selectFromLoginDetails(userDetails.getkEmailId());
+//                                if (c.getCount() > 0) {
+//                                    Toast.makeText(getApplicationContext(),"some data found!",Toast.LENGTH_LONG).show();
+//                                }
+//                                else {
+//                                    Toast.makeText(getApplicationContext(),"no data",Toast.LENGTH_LONG).show();
+//                                }
+
+
                                 startActivity(new Intent(getApplicationContext(),MainScreenActivity.class).putExtra("login_from", Constants.kLoginFromFacebook));
                             }
                         });
@@ -111,6 +147,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 deleteAccessToken();
                 Toast.makeText(getApplicationContext(),"Error In Logging In",Toast.LENGTH_SHORT).show();}
         });
+
+
+        // if already logged in...
+
+        String currentToken = "";
+        sharedPreferences = getSharedPreferences("newPrefs",MODE_PRIVATE);
+        currentToken = sharedPreferences.getString("token","NA");
+
+        if (AccessToken.getCurrentAccessToken().getToken().equals(currentToken)) {
+            Log.i("karo","already logged in");
+            startActivity(new Intent(getApplicationContext(),MainScreenActivity.class).putExtra("login_from", Constants.kLoginFromFacebook));
+        }
 
     }
 
@@ -261,76 +309,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //getting info of the user on google sign in...
             Person person = Plus.PeopleApi.getCurrentPerson(googleApiClient);
             GoogleSignInAccount account = signInResult.getSignInAccount();
-            loginPresenter.collectDetailsGoogle(account,person);
+            UserDetails userDetails = loginPresenter.collectDetailsGoogle(account,person);
+
+
+            //setting the shared prefs...
+            if (!new PrefUtil(activity).getLoginDetailsEmailPrefs(Constants.kLoginFromGoogle).equals(userDetails.getkEmailId())) {
+                //if the user is loggin in for the first time then the info will be inserted in the databse table
+                new PrefUtil(activity).setLoginDetailsEmailPrefs(userDetails.getkEmailId(),Constants.kLoginFromGoogle);
+                loginPresenter.insertt(userDetails);
+            }
+
+
+            //Cursor c = dataShelf.selectFromLoginDetails(userDetails.getkEmailId());
+            //Log.i("karo",""+c.getCount());
+//            if (c.getCount() > 0) {
+//                Log.i("karo","has data");
+//            }
+//            else {
+//                Log.i("karo","data not found");
+//            }
+
+
+
+
 
             //starting activity on successful login from google...
             startActivity(new Intent(getApplicationContext(),MainScreenActivity.class).putExtra("login_from", Constants.kLoginFromGoogle));
             refreshScreen();
         }
     }
-
-/*    private Bundle getFacebookData(JSONObject object) {
-        Bundle bundle = new Bundle();
-
-
-        String f_name = "",l_name = "",email = "",gender = "";
-        try {
-            String id = object.getString("id");
-            if (object.has("first_name"))
-                f_name = object.getString("first_name");
-            if (object.has("last_name"))
-                l_name = object.getString("last_name");
-            if (object.has("email"))
-                email = object.getString("email");
-            if (object.has("gender"))
-                gender = object.getString("gender");
-
-
-            Log.i("karo",id);
-            Log.i("karo",f_name);
-            Log.i("karo",l_name);
-            Log.i("karo",email);
-            Log.i("karo",gender);
-
-//            URL profile_pic;
-//            try {
-//                profile_pic = new URL("https://graph.facebook.com/" + id + "/picture?type=large");
-//                Log.i("profile_pic", profile_pic + "");
-//                bundle.putString("profile_pic", profile_pic.toString());
-//            } catch (MalformedURLException e) {
-//                e.printStackTrace();
-//                return null;
-//            }
-
-//            bundle.putString("idFacebook", id);
-//            if (object.has("first_name"))
-//                bundle.putString("first_name", object.getString("first_name"));
-//            if (object.has("last_name"))
-//                bundle.putString("last_name", object.getString("last_name"));
-//            if (object.has("email"))
-//                bundle.putString("email", object.getString("email"));
-//            if (object.has("gender"))
-//                bundle.putString("gender", object.getString("gender"));
-
-//            String emailString;
-//            if (object.getString("email").isEmpty() || object.getString("email") == null) {
-//                emailString = "NA";
-//            }
-//            else {
-//                //put the original object string in it...
-//                emailString = object.getString("email");
-//            }
-
-//            new PrefUtil(activity).saveFacebookUserInfo(object.getString("first_name"),
-//                    object.getString("last_name"),object.getString("email"),
-//                    object.getString("gender"), profile_pic.toString());
-
-        } catch (JSONException e) {
-            Log.d("karo", "BUNDLE Exception : "+e.toString());
-        }
-
-        return bundle;
-    }
-
-    */
 }

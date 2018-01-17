@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
 import com.rkhs.c_andorid.facebookintegration.Pojo.LoginDetails;
 import com.rkhs.c_andorid.facebookintegration.Pojo.UserDetails;
 
@@ -14,7 +16,7 @@ import com.rkhs.c_andorid.facebookintegration.Pojo.UserDetails;
 
 public class DataShelf extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "my_db";
+    private static final String DATABASE_NAME = "my_database";
     private static final int DATABASE_VERSION = 1;
 
 
@@ -25,7 +27,7 @@ public class DataShelf extends SQLiteOpenHelper {
     private static final String PASSWORD = "password";
 
     //variable for second table...
-    private static final String TABLE_LOGIN_DETAILS = "login_table";
+    private static final String TABLE_LOGIN_DETAILS = "login_table_two";
     private static final String SR_NOS = "sr_nos";
     private static final String FIRSTNAME = "firstname";
     private static final String LASTNAME = "lastname";
@@ -39,10 +41,10 @@ public class DataShelf extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        db.execSQL(" CREATE TABLE " + TABLE_LOGIN + " (" +
-                SR_NO + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                USERNAME + " TEXT NOT NULL, " +
-                PASSWORD + " TEXT NOT NULL);");
+//        db.execSQL(" CREATE TABLE " + TABLE_LOGIN + " (" +
+//                SR_NO + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+//                USERNAME + " TEXT NOT NULL, " +
+//                PASSWORD + " TEXT NOT NULL);");
 
         db.execSQL(" CREATE TABLE " + TABLE_LOGIN_DETAILS + " (" +
                 SR_NOS + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -50,41 +52,65 @@ public class DataShelf extends SQLiteOpenHelper {
                 LASTNAME + " TEXT NOT NULL, " +
                 MAILID + " TEXT NOT NULL, " +
                 GENDER + " TEXT NOT NULL);");
+
+        Log.i("karo","table created!");
+
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOGIN);
+        //db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOGIN);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOGIN_DETAILS);
         onCreate(db);
     }
 
-    //METHODS TO EXECUTE DATABASE FUNCTION...
-    public boolean insertIntoLogin(LoginDetails loginDetails) {
-
-        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put(USERNAME,loginDetails.getUsername());
-        cv.put(PASSWORD,loginDetails.getPassword());
-
-        long res = sqLiteDatabase.insert(TABLE_LOGIN,null,cv);
-        if (res >= 1){return true;}
-        else {return false;}
-    }
+//    //METHODS TO EXECUTE DATABASE FUNCTION...
+//    public boolean insertIntoLogin(LoginDetails loginDetails) {
+//
+//        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+//        ContentValues cv = new ContentValues();
+//        cv.put(USERNAME,loginDetails.getUsername());
+//        cv.put(PASSWORD,loginDetails.getPassword());
+//
+//        long res = sqLiteDatabase.insert(TABLE_LOGIN,null,cv);
+//        if (res >= 1){return true;}
+//        else {return false;}
+//    }
+//
+//    public Cursor selectFromLogin(String username) {
+//        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
+//        Cursor c = sqLiteDatabase.rawQuery("select * from "+TABLE_LOGIN+" where "+USERNAME+"= ?",new String[]{username});
+//        return c;
+//    }
 
     //METHODS FOR THE SECOND TABLE...
     public boolean insertIntoLoginDetails(UserDetails userDetails) {
 
-        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(FIRSTNAME,userDetails.getkFname());
         cv.put(LASTNAME,userDetails.getkLname());
         cv.put(MAILID,userDetails.getkEmailId());
         cv.put(GENDER,userDetails.getkGender());
 
+        Log.i("karo","CC : "+userDetails.getkFname());
+
         long res = sqLiteDatabase.insert(TABLE_LOGIN_DETAILS,null,cv);
+
+//        String qry = "insert into "+TABLE_LOGIN_DETAILS+" values (" +
+//                "firstname='"+userDetails.getkFname()+
+//                "lastname='"+userDetails.getkLname()+
+//                "mail_id='"+userDetails.getkEmailId()+
+//                "gender='"+userDetails.getkGender()+");";
+//        sqLiteDatabase.rawQuery(qry,null);
+
+        Log.i("karo",""+res);
+
         if (res >= 1){return true;}
         else {return false;}
+
+
+        //return true;
     }
 
     public Cursor selectFromLoginDetails(String mailId) {

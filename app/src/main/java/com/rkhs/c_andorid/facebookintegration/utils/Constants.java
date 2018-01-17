@@ -14,4 +14,8 @@ public class Constants {
     public static final int kLoginFromFacebook = 5;
     public static final int kLoginFromApp = 6;
 
+    public static final String kLoginDetailSharedPrefs = "login_details";
+    public static final String kEmailPresTagFacebook = "facebook_email_id";
+    public static final String kEmailPresTagGoogle = "google_email_id";
+
 }

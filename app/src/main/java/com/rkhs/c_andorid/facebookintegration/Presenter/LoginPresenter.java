@@ -66,10 +66,10 @@ public class LoginPresenter implements ILoginPresenter {
 
 
             userDetails.setkId(id);
-            userDetails.setkId(f_name);
-            userDetails.setkId(l_name);
-            userDetails.setkId(email);
-            userDetails.setkId(gender);
+            userDetails.setkFname(f_name);
+            userDetails.setkLname(l_name);
+            userDetails.setkEmailId(email);
+            userDetails.setkGender(gender);
 
             Log.i("karo",f_name);
             Log.i("karo",l_name);
@@ -119,37 +119,39 @@ public class LoginPresenter implements ILoginPresenter {
     @Override
     public LocalLoginResult fetchData(String userName, String password) {
 
-        boolean found = false;
-        LocalLoginResult localLoginResult = new LocalLoginResult();
-        Cursor c = dataShelf.selectFromLogin(userName);
-        if (c.getCount() > 0) {
-            int k = 0;
-            c.moveToFirst();
-            while(c.moveToNext()) {
-                if (c.getString(2).equals(password)) {
-                    localLoginResult.setValid(true);
-                    localLoginResult.setFeedback(Constants.kValidUser);
-                    return localLoginResult;
-                }
-                k++;
-            }
-            if (!found) {
-                //this block is tell that user has entered
-                //correct user name but the password is wrong!
-                localLoginResult.setValid(true);
-                localLoginResult.setFeedback(Constants.kInValidUser);
-            }
-        }
 
-        //the user has not registred yet...
-        localLoginResult.setValid(false);
-        localLoginResult.setFeedback(Constants.kUnregisteredUser);
-        return localLoginResult;
+        return null;
+//        boolean found = false;
+//        LocalLoginResult localLoginResult = new LocalLoginResult();
+//        Cursor c = dataShelf.selectFromLogin(userName);
+//        if (c.getCount() > 0) {
+//            int k = 0;
+//            c.moveToFirst();
+//            while(c.moveToNext()) {
+//                if (c.getString(2).equals(password)) {
+//                    localLoginResult.setValid(true);
+//                    localLoginResult.setFeedback(Constants.kValidUser);
+//                    return localLoginResult;
+//                }
+//                k++;
+//            }
+//            if (!found) {
+//                //this block is tell that user has entered
+//                //correct user name but the password is wrong!
+//                localLoginResult.setValid(true);
+//                localLoginResult.setFeedback(Constants.kInValidUser);
+//            }
+//        }
+//
+//        //the user has not registred yet...
+//        localLoginResult.setValid(false);
+//        localLoginResult.setFeedback(Constants.kUnregisteredUser);
+//        return localLoginResult;
     }
 
     @Override
     public boolean putData(LoginDetails loginDetails) {
-        if (dataShelf.insertIntoLogin(loginDetails)) {return true;}
+        //if (dataShelf.insertIntoLogin(loginDetails)) {return true;}
         return false;
     }
 

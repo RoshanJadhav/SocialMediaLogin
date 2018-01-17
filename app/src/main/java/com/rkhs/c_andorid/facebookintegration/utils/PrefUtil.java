@@ -55,4 +55,38 @@ public class PrefUtil {
         Log.d("MyApp", "Name : " + prefs.getString("fb_name", null) + "\nEmail : " + prefs.getString("fb_email", null));
     }
 
+
+    public void setLoginDetailsEmailPrefs(String mailId,int loginWith) {
+
+        if (loginWith == 4) {
+
+            //saving shared prefs email of google.com
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(Constants.kEmailPresTagGoogle,mailId);
+            editor.commit();
+        }
+        else if (loginWith == 5) {
+
+            //saving shared prefs email of facebook.com
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(Constants.kEmailPresTagFacebook,mailId);
+            editor.commit();
+
+        }
+    }
+
+    public String getLoginDetailsEmailPrefs(int loginWith) {
+
+        if (loginWith == 4) {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+            return sharedPreferences.getString(Constants.kEmailPresTagGoogle,"NA");
+        }
+        else {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+            return sharedPreferences.getString(Constants.kEmailPresTagFacebook,"NA");
+        }
+    }
+
 }
