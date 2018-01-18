@@ -1,6 +1,7 @@
 package com.rkhs.c_andorid.facebookintegration.Activities;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -32,6 +33,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInApi;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
@@ -72,45 +74,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FacebookSdk.sdkInitialize(getApplicationContext());
-        setContentView(R.layout.activity_main);
+        if (googleServicesAvailable()) {
 
-        f_init();
+            setContentView(R.layout.activity_main);
+            f_init();
 
-        //setting the permission for getting the email from the login information...
-        loginButton.setReadPermissions("email");
-        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
+            //setting the permission for getting the email from the login information...
+            loginButton.setReadPermissions("email");
+            loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+                @Override
+                public void onSuccess(LoginResult loginResult) {
 
-                accessToken = loginResult.getAccessToken();
-                String kToken = loginResult.getAccessToken().getToken();
+                    accessToken = loginResult.getAccessToken();
+                    String kToken = loginResult.getAccessToken().getToken();
 
-                sharedPreferences = getSharedPreferences("newPrefs",MODE_PRIVATE);
-                sharedPreferences.edit().putString("token",kToken).commit();
+                    sharedPreferences = getSharedPreferences("newPrefs",MODE_PRIVATE);
+                    sharedPreferences.edit().putString("token",kToken).commit();
 
-                new PrefUtil(activity).saveAccessToken(kToken);
+                    new PrefUtil(activity).saveAccessToken(kToken);
 
-                GraphRequest request = GraphRequest.newMeRequest(
-                        accessToken,
-                        new GraphRequest.GraphJSONObjectCallback() {
+                    GraphRequest request = GraphRequest.newMeRequest(
+                            accessToken,
+                            new GraphRequest.GraphJSONObjectCallback() {
 
-                            @Override
-                            public void onCompleted(JSONObject jsonObject,
-                                                    GraphResponse response) {
-                                // Getting FB User Data
-                                UserDetails userDetails = loginPresenter.collectDetailsFacebook(jsonObject);
+                                @Override
+                                public void onCompleted(JSONObject jsonObject,
+                                                        GraphResponse response) {
+                                    // Getting FB User Data
+                                    UserDetails userDetails = loginPresenter.collectDetailsFacebook(jsonObject);
 
 
-                                //checking if the user is already saved in database...
-                                Cursor c = dataShelf.selectFromLoginDetails(userDetails.getkEmailId());
-                                if (c.getCount() > 0) {
-                                    c.moveToFirst();
-                                    Log.i("karo","name : "+c.getString(1));
-                                }
-                                else {
-                                    boolean res = dataShelf.insertIntoLoginDetails(userDetails);
-                                    Log.i("karo",""+res);
-                                }
+                                    //checking if the user is already saved in database...
+                                    Cursor c = dataShelf.selectFromLoginDetails(userDetails.getkEmailId());
+                                    if (c.getCount() > 0) {
+                                        c.moveToFirst();
+                                        Log.i("karo","name : "+c.getString(1));
+                                    }
+                                    else {
+                                        boolean res = dataShelf.insertIntoLoginDetails(userDetails);
+                                        Log.i("karo",""+res);
+                                    }
 
 
 //                                if (!new PrefUtil(activity).getLoginDetailsEmailPrefs(Constants.kLoginFromFacebook).equals(userDetails.getkEmailId())) {
@@ -128,38 +131,67 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                                }
 
 
-                                startActivity(new Intent(getApplicationContext(),MainScreenActivity.class).putExtra("login_from", Constants.kLoginFromFacebook));
-                            }
-                        });
+                                    startActivity(new Intent(getApplicationContext(),MainScreenActivity.class).putExtra("login_from", Constants.kLoginFromFacebook));
+                                }
+                            });
 
-                Bundle parameters = new Bundle();
-                parameters.putString("fields", "id,first_name,last_name,email,gender");
-                request.setParameters(parameters);
-                request.executeAsync();
-            }
+                    Bundle parameters = new Bundle();
+                    parameters.putString("fields", "id,first_name,last_name,email,gender");
+                    request.setParameters(parameters);
+                    request.executeAsync();
+                }
 
-            @Override
-            public void onCancel() {Toast.makeText(getApplicationContext(),"Login Canceled",Toast.LENGTH_SHORT).show();}
+                @Override
+                public void onCancel() {Toast.makeText(getApplicationContext(),"Login Canceled",Toast.LENGTH_SHORT).show();}
 
-            @Override
-            public void onError(FacebookException error) {
+                @Override
+                public void onError(FacebookException error) {
 
-                deleteAccessToken();
-                Toast.makeText(getApplicationContext(),"Error In Logging In",Toast.LENGTH_SHORT).show();}
-        });
-
+                    deleteAccessToken();
+                    Toast.makeText(getApplicationContext(),"Error In Logging In",Toast.LENGTH_SHORT).show();}
+            });
+        }
+        else {
+            Toast.makeText(this,"Services Are Not Available App not working.",Toast.LENGTH_SHORT).show();
+            finish();
+        }
 
         // if already logged in...
+
+
 
         String currentToken = "";
         sharedPreferences = getSharedPreferences("newPrefs",MODE_PRIVATE);
         currentToken = sharedPreferences.getString("token","NA");
 
-        if (AccessToken.getCurrentAccessToken().getToken().equals(currentToken)) {
-            Log.i("karo","already logged in");
-            startActivity(new Intent(getApplicationContext(),MainScreenActivity.class).putExtra("login_from", Constants.kLoginFromFacebook));
+        try {
+
+            if (AccessToken.getCurrentAccessToken().getToken().equals(currentToken)) {
+                Log.i("karo","already logged in");
+                startActivity(new Intent(getApplicationContext(),MainScreenActivity.class).putExtra("login_from", Constants.kLoginFromFacebook));
+            }
+        }catch (NullPointerException e) {
         }
 
+    }
+
+    private boolean googleServicesAvailable() {
+
+        GoogleApiAvailability api = GoogleApiAvailability.getInstance();
+        int isAvailable = api.isGooglePlayServicesAvailable(this);
+
+        if (isAvailable == ConnectionResult.SUCCESS) {
+            Toast.makeText(this,"Services Are Available",Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        else if (api.isUserResolvableError(isAvailable)) {
+
+            Dialog dialog = api.getErrorDialog(this,isAvailable,0);
+            dialog.show();
+        }
+        else {Toast.makeText(this,"Services Are not Available",Toast.LENGTH_SHORT).show();}
+
+        return false;
     }
 
     private void deleteAccessToken() {
